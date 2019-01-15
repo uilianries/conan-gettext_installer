@@ -1,58 +1,49 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-from conans import ConanFile, CMake, tools
 import os
+import shutil
+from conans import ConanFile, AutoToolsBuildEnvironment, tools
 
 
-class LibnameConan(ConanFile):
-    name = "libname"
-    version = "0.0.0"
+class GettextInstallerConan(ConanFile):
+    name = "gettext_installer"
+    version = "0.19.8.1"
     description = "Keep it short"
-    # topics can get used for searches, GitHub topics, Bintray tags etc. Add here keywords about the library
-    topics = ("conan", "libname", "logging")
-    url = "https://github.com/bincrafters/conan-libname"
-    homepage = "https://github.com/original_author/original_lib"
+    topics = ("conan", "gettext", "installer", "gnu", "internationalization")
+    url = "https://github.com/bincrafters/conan-gettext_installer"
+    homepage = "https://www.gnu.org/software/gettext/"
     author = "Bincrafters <bincrafters@gmail.com>"
-    license = "MIT"  # Indicates license type of the packaged library; please use SPDX Identifiers https://spdx.org/licenses/
-    exports = ["LICENSE.md"]      # Packages the license for the conanfile.py
-    # Remove following lines if the target lib does not use cmake.
-    exports_sources = ["CMakeLists.txt"]
-    generators = "cmake"
-
-    # Options may need to change depending on the packaged library.
+    license = "GPL-3.0"
+    exports = ["LICENSE.md"]
     settings = "os_build", "arch_build", "compiler"
-
-    # Custom attributes for Bincrafters recipe conventions
     _source_subfolder = "source_subfolder"
-    _build_subfolder = "build_subfolder"
+    _autotools = None
 
     def source(self):
-        source_url = "https://github.com/libauthor/libname"
-        tools.get("{0}/archive/v{1}.tar.gz".format(source_url, self.version), sha256="Please-provide-a-checksum")
-        extracted_dir = self.name + "-" + self.version
-
-        # Rename to "source_subfolder" is a convention to simplify later steps
+        source_url = "https://ftp.gnu.org/pub/gnu/gettext"
+        sha256 = "ff942af0e438ced4a8b0ea4b0b6e0d6d657157c5e2364de57baa279c1c125c43"
+        tools.get("{}/gettext-{}.tar.gz".format(source_url, self.version), sha256=sha256)
+        extracted_dir = "gettext-" + self.version
         os.rename(extracted_dir, self._source_subfolder)
 
-    def _configure_cmake(self):
-        cmake = CMake(self)
-        cmake.definitions["BUILD_TESTS"] = False  # example
-        cmake.configure(build_folder=self._build_subfolder)
-        return cmake
+    def _configure_autotools(self):
+        if not self._autotools:
+            self._autotools = AutoToolsBuildEnvironment(self, win_bash=tools.os_info.is_windows)
+            self._autotools.configure(args=["--enable-static", "--enable-shared=no"])
+        return self._autotools
 
     def build(self):
-        cmake = self._configure_cmake()
-        cmake.build()
+        with tools.chdir(self._source_subfolder):
+            autotools = self._configure_autotools()
+            autotools.make()
 
     def package(self):
-        self.copy(pattern="LICENSE", dst="licenses", src=self._source_subfolder)
-        cmake = self._configure_cmake()
-        cmake.install()
-        # If the CMakeLists.txt has a proper install method, the steps below may be redundant
-        # If so, you can just remove the lines below
-        self.copy(pattern="tool_name", dst="bin", keep_path=False)
-        self.copy(pattern="tool_name.exe", dst="bin", keep_path=False)
+        self.copy(pattern="COPYING", dst="licenses", src=self._source_subfolder)
+        with tools.chdir(self._source_subfolder):
+            autotools = self._configure_autotools()
+            autotools.install()
+        for dir_name in ["lib", "include", "share"]:
+            shutil.rmtree(os.path.join(self.package_folder, dir_name), ignore_errors=True)
 
     def package_id(self):
         del self.info.settings.compiler

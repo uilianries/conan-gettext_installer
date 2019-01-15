@@ -4,12 +4,12 @@ environment:
     PYTHON: "C:\\Python37"
 
     matrix:
-        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-          CONAN_VISUAL_VERSIONS: 15
+        - MINGW_CONFIGURATIONS: '4.9@x86@dwarf2@posix'
           ARCH: x86
-        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-          CONAN_VISUAL_VERSIONS: 15
+          CONAN_BASH_PATH: "c:\\msys64\\usr\\bin\\bash"
+        - MINGW_CONFIGURATIONS: '4.9@x86_64@seh@posix'
           ARCH: x86_64
+          CONAN_BASH_PATH: "c:\\msys64\\usr\\bin\\bash"
 
 install:
   - set PATH=%PYTHON%;%PYTHON%/Scripts/;%PATH%
