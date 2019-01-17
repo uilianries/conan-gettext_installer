@@ -15,7 +15,7 @@ class GettextInstallerConan(ConanFile):
     author = "Bincrafters <bincrafters@gmail.com>"
     license = "GPL-3.0"
     exports = ["LICENSE.md"]
-    settings = "os_build", "arch_build", "compiler"
+    settings = "os_build", "arch_build"
     _source_subfolder = "source_subfolder"
     _autotools = None
 
@@ -29,7 +29,23 @@ class GettextInstallerConan(ConanFile):
     def _configure_autotools(self):
         if not self._autotools:
             self._autotools = AutoToolsBuildEnvironment(self, win_bash=tools.os_info.is_windows)
-            self._autotools.configure(args=["--enable-static", "--enable-shared=no"])
+            args = [ "--enable-static",
+                     "--enable-shared=no",
+                     "--disable-dependency-tracking",
+                     "--disable-java",
+                     "--disable-native-java",
+                     "--disable-csharp",
+                     "--disable-openmp",
+                     "--disable-curses",
+                     "--without-emacs",
+                     "--disable-acl",
+                     "--with-included-libxml",
+                     "--without-bzip2",
+                     "--without-xz",
+                     "--with-included-libxml"
+            ]
+
+            self._autotools.configure(args=args)
         return self._autotools
 
     def build(self):
@@ -44,9 +60,6 @@ class GettextInstallerConan(ConanFile):
             autotools.install()
         for dir_name in ["lib", "include", "share"]:
             shutil.rmtree(os.path.join(self.package_folder, dir_name), ignore_errors=True)
-
-    def package_id(self):
-        del self.info.settings.compiler
 
     def package_info(self):
         self.env_info.PATH.append(os.path.join(self.package_folder, "bin"))
