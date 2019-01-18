@@ -15,6 +15,7 @@ class GettextInstallerConan(ConanFile):
     author = "Bincrafters <bincrafters@gmail.com>"
     license = "GPL-3.0"
     exports = ["LICENSE.md"]
+    exports_sources = "gettext.patch"
     settings = "os_build", "arch_build"
     _source_subfolder = "source_subfolder"
     _autotools = None
@@ -49,6 +50,7 @@ class GettextInstallerConan(ConanFile):
         return self._autotools
 
     def build(self):
+        tools.patch(base_path=self._source_subfolder, patch_file="gettext.patch")
         with tools.chdir(self._source_subfolder):
             autotools = self._configure_autotools()
             autotools.make()

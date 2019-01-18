@@ -1,0 +1,40 @@
+diff --git a/gettext-tools/configure.ac b/gettext-tools/configure.ac
+index 3b132ed..19c6f28 100644
+--- a/gettext-tools/configure.ac
++++ b/gettext-tools/configure.ac
+@@ -136,7 +136,7 @@ AC_TRY_LINK([
+   [x = ceil(x); x = sqrt(x);],
+   [MSGMERGE_LIBM=])
+ if test "$MSGMERGE_LIBM" = "?"; then
+-  save_LIBS="$LIBS" 
++  save_LIBS="$LIBS"
+   LIBS="$LIBS -lm"
+   AC_TRY_LINK([
+      #ifndef __NO_MATH_INLINES
+@@ -203,6 +203,14 @@ AH_BOTTOM([
+ 
+ gt_PREREQ_HOSTNAME
+ 
++dnl Parameterization of the 'libxml' module:
++dnl When INCLUDED_LIBXML is true and building static libraries, tell
++dnl libxml's xmlexports.h to omit '__declspec(dllimport)' on mingw and Cygwin.
++if test "$gl_cv_libxml_use_included" = yes && test "$enable_shared" != yes; then
++  AC_DEFINE([LIBXML_STATIC], [1],
++    [Define if libxml is being used as a static library.])
++fi
++
+ dnl Compilation on mingw and Cygwin needs special Makefile rules, because
+ dnl 1. when we install a shared library, we must arrange to export
+ dnl    auxiliary pointer variables for every exported variable,
+diff --git a/gnulib-local/lib/libxml/libxml.h b/gnulib-local/lib/libxml/libxml.h
+index 2da9044..f83272c 100644
+--- a/gnulib-local/lib/libxml/libxml.h
++++ b/gnulib-local/lib/libxml/libxml.h
+@@ -107,6 +107,6 @@ int xmlNop(void);
+ #endif
+ #endif
+ #if !defined(PIC) && !defined(NOLIBTOOL)
+-#  define LIBXML_STATIC
++#  define LIBXML_STATIC 1
+ #endif
+ #endif /* ! __XML_LIBXML_H__ */
